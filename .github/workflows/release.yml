@@ -3,7 +3,7 @@ name: Release & Publish to NuGet
 on:
   push:
     tags:
-      - '*.*.*'  # Triggers on version tags like v1.0.0
+      - 'V*.*.*'  # Triggers on version tags like v1.0.0
 
 permissions:
   contents: write
