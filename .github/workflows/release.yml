@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*.*.*'  # Triggers on version tags like v1.0.0
 
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
 env:
   DOTNET_VERSION: '9.0.x'
   CONFIGURATION: Release
