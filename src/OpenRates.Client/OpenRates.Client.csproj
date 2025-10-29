@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OpenRates.Core\OpenRates.Core.csproj" />
+    <ProjectReference Include="..\OpenRates.Core\OpenRates.Core.csproj" Pack="true" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>
