@@ -5,6 +5,9 @@ OpenRates.NET is an open-source .NET library and data service providing daily an
 [![Build](https://github.com/henrikroschmann/OpenRates.NET/actions/workflows/build.yml/badge.svg)](https://github.com/henrikroschmann/OpenRates.NET/actions)
 [![Tests](https://github.com/henrikroschmann/OpenRates.NET/actions/workflows/build.yml/badge.svg)](https://github.com/henrikroschmann/OpenRates.NET/actions)
 
+[![NuGet](https://img.shields.io/nuget/v/OpenRates.Net.svg)](https://www.nuget.org/packages/OpenRates.Net/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 ## Features
 
 - 🚀 **High Performance**: Built-in hybrid caching with configurable expiration
