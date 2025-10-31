@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Caching.Hybrid;
 
 namespace OpenRates.Client;
@@ -28,20 +29,21 @@ public sealed class OpenRatesClient(HttpClient http, HybridCache cache) : IOpenR
 
                 try
                 {
-                    var json = await _http.GetFromJsonAsync<JsonElement>(url, cancel);
-                    
-                    if (json.ValueKind == JsonValueKind.Undefined || json.ValueKind == JsonValueKind.Null)
-                    {
-                        throw new InvalidOperationException($"Invalid response from CDN for {fromLower}/{toLower}");
-                    }
+                    var json = await _http.GetFromJsonAsync<ExchangeRatesResponse>(url, cancel)
+                        ?? throw new InvalidOperationException($"Invalid response from CDN for {fromLower}/{toLower}");
 
-                    if (!json.TryGetProperty(fromLower, out var fromElement) ||
-                        !fromElement.TryGetProperty(toLower, out var rateElement))
+                    if (!json.Rates.TryGetValue(fromLower, out var fromRates))
+                    {
+                        throw new KeyNotFoundException($"Exchange rate not found for {from}/{to}");
+                    }
+       
+
+                    if (!fromRates.TryGetValue(toLower, out var result))
                     {
                         throw new KeyNotFoundException($"Exchange rate not found for {from}/{to}");
                     }
 
-                    return rateElement.GetDecimal();
+                    return result;
                 }
                 catch (HttpRequestException ex)
                 {
@@ -61,3 +63,8 @@ public sealed class OpenRatesClient(HttpClient http, HybridCache cache) : IOpenR
         );
     }
 }
+
+public sealed record ExchangeRatesResponse(
+    [property: JsonPropertyName("date")] DateTime Date,
+    [property: JsonPropertyName("rates")] IDictionary<string, IDictionary<string, decimal>> Rates
+);
