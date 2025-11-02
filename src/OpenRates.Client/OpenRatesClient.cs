@@ -32,18 +32,45 @@ public sealed class OpenRatesClient(HttpClient http, HybridCache cache) : IOpenR
                     var json = await _http.GetFromJsonAsync<ExchangeRatesResponse>(url, cancel)
                         ?? throw new InvalidOperationException($"Invalid response from CDN for {fromLower}/{toLower}");
 
-                    if (!json.Rates.TryGetValue(fromLower, out var fromRates))
+                    if (fromLower == toLower)
                     {
-                        throw new KeyNotFoundException($"Exchange rate not found for {from}/{to}");
-                    }
-       
-
-                    if (!fromRates.TryGetValue(toLower, out var result))
-                    {
-                        throw new KeyNotFoundException($"Exchange rate not found for {from}/{to}");
+                        return 1m;
                     }
 
-                    return result;
+                    if (!json.Rates.TryGetValue(fromLower, out var fromRates) ||
+                        !fromRates.TryGetValue(toLower, out var direct))
+                    {
+                        const string eur = "eur";
+
+                        if (!json.Rates.TryGetValue(eur, out var eurRates))
+                        {
+                            throw new KeyNotFoundException($"Base {eur} rates not available for {from}/{to}");
+                        }
+
+                        // EUR -> TO
+                        if (fromLower == eur && eurRates.TryGetValue(toLower, out var eurToTo))
+                        {
+                            return eurToTo;
+                        }
+
+                        // FROM -> EUR
+                        if (toLower == eur && eurRates.TryGetValue(fromLower, out var eurToFrom))
+                        {
+                            return eurToFrom == 0m
+                                ? throw new DivideByZeroException($"Zero rate for {eur}->{fromLower}")
+                                : 1m / eurToFrom;
+                        }
+
+                        // FROM -> TO via EUR
+                        return eurRates.TryGetValue(toLower, out var eurToTo2) &&
+                            eurRates.TryGetValue(fromLower, out var eurToFrom2)
+                            ? eurToFrom2 == 0m
+                                ? throw new DivideByZeroException($"Zero rate for {eur}->{fromLower}")
+                                : eurToTo2 / eurToFrom2
+                            : throw new KeyNotFoundException($"Exchange rate not found for {from}/{to}");
+                    }
+
+                    return direct;
                 }
                 catch (HttpRequestException ex)
                 {
